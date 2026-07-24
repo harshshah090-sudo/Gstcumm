@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APK Builder — Gstcumm</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="APK Builder">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230d1117'/%3E%3Ctext x='50' y='64' font-size='50' text-anchor='middle' fill='%233fb950' font-family='monospace'%3E%3E_%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230d1117'/%3E%3Ctext x='50' y='64' font-size='50' text-anchor='middle' fill='%233fb950' font-family='monospace'%3E%3E_%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22APK%20Builder%22%2C%22short_name%22%3A%22APK%20Builder%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230d1117%22%2C%22theme_color%22%3A%22%230d1117%22%2C%22start_url%22%3A%22.%22%7D">
+<style>
+  :root{
+    --bg:#0d1117;
+    --panel:#11161d;
+    --line:#232b36;
+    --text:#e6edf3;
+    --dim:#7d8794;
+    --accent:#3fb950;
+    --accent-dim:#1f7a34;
+    --warn:#d29922;
+    --err:#f85149;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    min-height:100vh;
+    padding:20px 16px 60px;
+  }
+  .wrap{max-width:560px;margin:0 auto;}
+  header{margin-bottom:24px;}
+  .tag{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--accent);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .tag::before{content:"●";font-size:9px;}
+  h1{
+    font-size:22px;
+    margin:6px 0 4px;
+    font-weight:650;
+    letter-spacing:-0.01em;
+  }
+  .sub{color:var(--dim);font-size:13.5px;line-height:1.5;}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px;
+    margin-bottom:14px;
+  }
+  .card h2{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--dim);
+    margin:0 0 12px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .step-num{
+    width:18px;height:18px;
+    border-radius:5px;
+    background:var(--line);
+    color:var(--text);
+    font-size:11px;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--mono);
+  }
+
+  label{
+    display:block;
+    font-size:12.5px;
+    color:var(--dim);
+    margin-bottom:6px;
+    margin-top:14px;
+  }
+  label:first-of-type{margin-top:0;}
+  input[type=text], input[type=password]{
+    width:100%;
+    background:#0a0e13;
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:11px 12px;
+    border-radius:7px;
+    font-size:14px;
+    font-family:var(--mono);
+    outline:none;
+  }
+  input[type=text]:focus, input[type=password]:focus{border-color:var(--accent-dim);}
+
+  .filebtn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    border:1.5px dashed var(--line);
+    border-radius:8px;
+    padding:20px 12px;
+    color:var(--dim);
+    font-size:13.5px;
+    cursor:pointer;
+    background:transparent;
+    text-align:center;
+  }
+  .filebtn.has-file{border-color:var(--accent-dim);color:var(--text);border-style:solid;}
+  input[type=file]{display:none;}
+
+  button.primary{
+    width:100%;
+    margin-top:18px;
+    background:var(--accent);
+    color:#04170a;
+    border:none;
+    padding:13px;
+    border-radius:8px;
+    font-size:14.5px;
+    font-weight:650;
+    cursor:pointer;
+  }
+  button.primary:disabled{background:#1c2733;color:var(--dim);cursor:not-allowed;}
+  button.primary:active:not(:disabled){transform:scale(0.99);}
+
+  .log{
+    font-family:var(--mono);
+    font-size:12.5px;
+    line-height:1.9;
+    color:var(--dim);
+  }
+  .log .row{display:flex;gap:9px;align-items:flex-start;}
+  .log .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--line);
+    margin-top:5px;flex-shrink:0;
+  }
+  .log .row.done .dot{background:var(--accent);}
+  .log .row.active .dot{background:var(--warn);animation:pulse 1s infinite;}
+  .log .row.error .dot{background:var(--err);}
+  .log .row.done{color:var(--text);}
+  .log .row.error{color:var(--err);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  .result{
+    margin-top:14px;
+    padding:14px;
+    border-radius:8px;
+    background:#0a1f10;
+    border:1px solid var(--accent-dim);
+    display:none;
+  }
+  .result.show{display:block;}
+  .result a{
+    display:block;
+    text-align:center;
+    background:var(--accent);
+    color:#04170a;
+    font-weight:650;
+    text-decoration:none;
+    padding:12px;
+    border-radius:7px;
+    font-size:14px;
+    margin-top:10px;
+  }
+  .hint{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.5;}
+  .errbox{
+    display:none;
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:8px;
+    background:#2b1214;
+    border:1px solid #5c2226;
+    color:#ffb4b4;
+    font-size:13px;
+    line-height:1.5;
+  }
+  .errbox.show{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="tag">Gstcumm builder</div>
+    <h1>Build APK from your phone</h1>
+    <div class="sub">Uploads your project zip to GitHub and runs the Actions workflow. No PC required.</div>
+  </header>
+
+  <div class="card">
+    <h2><span class="step-num">1</span>Connect</h2>
+    <label for="token">Personal access token</label>
+    <input type="password" id="token" placeholder="github_pat_..." autocomplete="off">
+    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12.5px;color:var(--dim);cursor:pointer;">
+      <input type="checkbox" id="rememberToken" style="width:auto;margin:0;">
+      Remember token on this device
+    </label>
+    <div class="hint">Only enable this on your own phone — the token will be saved in this browser.</div>
+    <label for="repo">Repository</label>
+    <input type="text" id="repo" value="harshshah090-sudo/Gstcumm">
+    <label for="branch">Branch</label>
+    <input type="text" id="branch" value="main">
+    <label for="workflow">Workflow file</label>
+    <input type="text" id="workflow" value="build.yml">
+    <div class="hint">Use <code>build.yml</code> for native Android projects (gstcumm), or <code>build-capacitor.yml</code> for AI Studio / web-app projects.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">2</span>Project file</h2>
+    <label>Zipped project</label>
+    <label class="filebtn" id="filebtn" for="fileinput">Tap to choose a .zip file</label>
+    <input type="file" id="fileinput" accept=".zip" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;">
+    <div class="hint">Zip your project folder first (must contain gradlew). This replaces any zip already in the repo.</div>
+  </div>
+
+  <button class="primary" id="startbtn">Push files &amp; build APK</button>
+
+  <div class="card" id="logcard" style="display:none;">
+    <h2><span class="step-num">3</span>Progress</h2>
+    <div class="log" id="log"></div>
+    <div class="result" id="result">
+      <div style="font-size:13.5px;">Build finished.</div>
+      <a id="downloadlink" href="#">Download APK</a>
+    </div>
+    <div class="errbox" id="errbox"></div>
+  </div>
+</div>
+
+<script>
+const filebtn = document.getElementById('filebtn');
+const fileinput = document.getElementById('fileinput');
+const startbtn = document.getElementById('startbtn');
+const logcard = document.getElementById('logcard');
+const logEl = document.getElementById('log');
+const result = document.getElementById('result');
+const downloadlink = document.getElementById('downloadlink');
+const errbox = document.getElementById('errbox');
+const tokenInput = document.getElementById('token');
+const rememberBox = document.getElementById('rememberToken');
+
+// Load a remembered token, if one was saved on this device
+try {
+  const saved = localStorage.getItem('apkBuilderToken');
+  if (saved) {
+    tokenInput.value = saved;
+    rememberBox.checked = true;
+  }
+} catch (e) { /* localStorage unavailable, ignore */ }
+
+rememberBox.addEventListener('change', () => {
+  if (!rememberBox.checked) {
+    try { localStorage.removeItem('apkBuilderToken'); } catch (e) {}
+  }
+});
+
+let chosenFile = null;
+
+fileinput.addEventListener('change', () => {
+  if (fileinput.files.length) {
+    chosenFile = fileinput.files[0];
+    filebtn.textContent = chosenFile.name;
+    filebtn.classList.add('has-file');
+  }
+});
+
+function addLog(text) {
+  const row = document.createElement('div');
+  row.className = 'row active';
+  row.innerHTML = `<div class="dot"></div><div>${text}</div>`;
+  logEl.appendChild(row);
+  return row;
+}
+function markDone(row, text) {
+  row.classList.remove('active');
+  row.classList.add('done');
+  if (text) row.querySelector('div:last-child').textContent = text;
+}
+function markError(row, text) {
+  row.classList.remove('active');
+  row.classList.add('error');
+  row.querySelector('div:last-child').textContent = text;
+}
+function showFatalError(msg) {
+  errbox.textContent = msg;
+  errbox.classList.add('show');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function gh(path, token, opts = {}) {
+  const res = await fetch(`https://api.github.com${path}`, {
+    ...opts,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(opts.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(opts.headers || {})
+    }
+  });
+  return res;
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+startbtn.addEventListener('click', async () => {
+  const token = document.getElementById('token').value.trim();
+  const repo = document.getElementById('repo').value.trim();
+  const branch = document.getElementById('branch').value.trim() || 'main';
+  const workflow = document.getElementById('workflow').value.trim() || 'build.yml';
+
+  errbox.classList.remove('show');
+  result.classList.remove('show');
+  logcard.style.display = 'block';
+  logEl.innerHTML = '';
+
+  if (!token) { showFatalError('Paste your GitHub token first.'); return; }
+  if (!repo.includes('/')) { showFatalError('Repository must be in owner/repo format.'); return; }
+  if (!chosenFile) { showFatalError('Choose a project zip file first.'); return; }
+
+  try {
+    if (rememberBox.checked) {
+      localStorage.setItem('apkBuilderToken', token);
+    } else {
+      localStorage.removeItem('apkBuilderToken');
+    }
+  } catch (e) { /* localStorage unavailable, ignore */ }
+
+  startbtn.disabled = true;
+
+  try {
+    // Step 1: remove any existing .zip files at repo root
+    let row = addLog('Checking repo for old project files…');
+    const rootRes = await gh(`/repos/${repo}/contents/`, token);
+    if (!rootRes.ok) {
+      const body = await rootRes.text();
+      throw new Error(`Could not read repo contents (${rootRes.status}). Check token permissions and repo name.\n${body.slice(0,200)}`);
+    }
+    const rootFiles = await rootRes.json();
+    const oldZips = rootFiles.filter(f => f.name.toLowerCase().endsWith('.zip'));
+    for (const z of oldZips) {
+      await gh(`/repos/${repo}/contents/${encodeURIComponent(z.path)}`, token, {
+        method: 'DELETE',
+        body: JSON.stringify({ message: `Remove old project zip (${z.name})`, sha: z.sha, branch })
+      });
+    }
+    markDone(row, oldZips.length ? `Removed ${oldZips.length} old zip file(s).` : 'No old zip files found.');
+
+    // Step 2: upload new zip
+    row = addLog('Uploading your project zip…');
+    const b64 = await fileToBase64(chosenFile);
+    const uploadPath = 'project.zip';
+    const putRes = await gh(`/repos/${repo}/contents/${uploadPath}`, token, {
+      method: 'PUT',
+      body: JSON.stringify({
+        message: `Update project via APK builder app`,
+        content: b64,
+        branch
+      })
+    });
+    if (!putRes.ok) {
+      const body = await putRes.text();
+      throw new Error(`Upload failed (${putRes.status}). File may be too large for this method (keep under ~20MB), or token lacks write access.\n${body.slice(0,300)}`);
+    }
+    markDone(row, 'Project zip uploaded.');
+
+    // Step 3: trigger workflow
+    row = addLog('Triggering the build workflow…');
+    const dispatchRes = await gh(`/repos/${repo}/actions/workflows/${workflow}/dispatches`, token, {
+      method: 'POST',
+      body: JSON.stringify({ ref: branch })
+    });
+    if (!dispatchRes.ok) {
+      const body = await dispatchRes.text();
+      throw new Error(`Could not trigger workflow (${dispatchRes.status}). Make sure .github/workflows/${workflow} exists on branch "${branch}".\n${body.slice(0,300)}`);
+    }
+    markDone(row, 'Build triggered on GitHub Actions.');
+
+    // Step 4: find the new run
+    row = addLog('Waiting for the run to start…');
+    let runId = null;
+    let attempts = 0;
+    const startedAfter = Date.now() - 15000;
+    while (!runId && attempts < 20) {
+      await sleep(3000);
+      const runsRes = await gh(`/repos/${repo}/actions/workflows/${workflow}/runs?per_page=5`, token);
+      const runsData = await runsRes.json();
+      if (runsData.workflow_runs && runsData.workflow_runs.length) {
+        const candidate = runsData.workflow_runs.find(r => new Date(r.created_at).getTime() >= startedAfter);
+        if (candidate) runId = candidate.id;
+      }
+      attempts++;
+    }
+    if (!runId) throw new Error('Timed out waiting for the run to appear. Check the Actions tab on GitHub directly.');
+    markDone(row, 'Build started.');
+
+    // Step 5: poll run status
+    row = addLog('Building… this usually takes a few minutes.');
+    let status = 'in_progress';
+    let conclusion = null;
+    let pollCount = 0;
+    while (status !== 'completed' && pollCount < 100) {
+      await sleep(6000);
+      const runRes = await gh(`/repos/${repo}/actions/runs/${runId}`, token);
+      const runData = await runRes.json();
+      status = runData.status;
+      conclusion = runData.conclusion;
+      pollCount++;
+    }
+    if (status !== 'completed') throw new Error('Build is taking unusually long. Check the Actions tab on GitHub.');
+    if (conclusion !== 'success') {
+      throw new Error(`Build finished with status "${conclusion}". Open the Actions tab on GitHub to see the error log.`);
+    }
+    markDone(row, 'Build completed successfully.');
+
+    // Step 6: get artifact
+    row = addLog('Fetching the APK…');
+    const artRes = await gh(`/repos/${repo}/actions/runs/${runId}/artifacts`, token);
+    const artData = await artRes.json();
+    if (!artData.artifacts || !artData.artifacts.length) {
+      throw new Error('Build succeeded but no APK artifact was found. Check the workflow file paths.');
+    }
+    const artifact = artData.artifacts[0];
+    const zipRes = await gh(`/repos/${repo}/actions/artifacts/${artifact.id}/zip`, token);
+    if (!zipRes.ok) throw new Error(`Could not download artifact (${zipRes.status}).`);
+    const blob = await zipRes.blob();
+    const url = URL.createObjectURL(blob);
+    downloadlink.href = url;
+    downloadlink.download = `${artifact.name}.zip`;
+    markDone(row, 'APK ready.');
+
+    result.classList.add('show');
+  } catch (err) {
+    const rows = logEl.querySelectorAll('.row.active');
+    rows.forEach(r => markError(r, 'Failed'));
+    showFatalError(err.message || String(err));
+  } finally {
+    startbtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
